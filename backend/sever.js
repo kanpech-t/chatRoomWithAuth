@@ -13,7 +13,8 @@ require("dotenv").config();
 
 // ======================= Router =======================
 
-const loginRegister = require("./routes/loginRegister");
+const products = require("./routes/product");
+const login = require("./routes/login");
 const chatRoom = require("./routes/chatRoom");
 
 // ======================= Middleware =======================
@@ -165,5 +166,6 @@ io.on("connection", (socket) => {
 
 // ======================= Router =======================
 
-app.use("/", loginRegister);
+app.use("/products", products);
+app.use("/", login);
 app.use("/chatroom", chatRoom);
