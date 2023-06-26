@@ -9,6 +9,21 @@ const { v4: uuidv4 } = require("uuid");
 // middleware
 router.use(express.json());
 
+router.get("/", async (req, res) => {
+  try {
+    const allRoom = await userRoom.find({ id: req.user.id });
+    if (allRoom) {
+      const result = await Promise.all(
+        allRoom.map(async (data) => {
+          const userDetail = await Room.findOne({ roomId: data.roomId });
+          return userDetail;
+        })
+      );
+      return res.json(result);
+    }
+  } catch (err) {}
+});
+
 router.get("/:roomId", async (req, res, next) => {
   try {
     const allMessage = await message.find({ roomId: req.params.roomId });
@@ -33,29 +48,55 @@ router.get("/:roomId", async (req, res, next) => {
   }
 });
 
-// ไว้ก่อน เยอะชห
-router.put("/join", async (req, res, next) => {
+router.post("/create", async (req, res) => {
   try {
-    const userId = req.body.id;
-    const roomId = req.body.roomId;
-    if (!userId || !roomId) {
-      return res
-        .status(400)
-        .json({ message: "please sent data in your header" });
-    }
-    const userRoomDetail = userRoom.findOne({ id: userId });
-    if (!userRoomDetail) {
-      userRoom.create({
-        id: userId,
-        roomId: [roomId],
+    roomId = req.body.roomId;
+    roomName = req.body.roomName;
+    userId = req.user.id;
+
+    //  create in mongodb and user join room
+    const checkRoomExist = await Room.findOne({ roomId: roomId });
+    if (!checkRoomExist) {
+      const createRoom = await Room.create({
+        roomId: roomId,
+        roomName: roomName,
       });
+      const joinRoom = await userRoom.create({
+        id: userId,
+        roomId: roomId,
+      });
+      return res.json({ status: "success" });
     } else {
-      // put update เพิ่มห้องเข้าไป
+      return res.status(500).json({ message: "room already exist" });
     }
   } catch (err) {
-    return res.status(500).json({ error: err });
+    return res.status(500).json("something went wrong");
   }
 });
+
+// ไว้ก่อน เยอะชห
+// router.put("/join", async (req, res, next) => {
+//   try {
+//     const userId = req.body.id;
+//     const roomId = req.body.roomId;
+//     if (!userId || !roomId) {
+//       return res
+//         .status(400)
+//         .json({ message: "please sent data in your header" });
+//     }
+//     const userRoomDetail = userRoom.findOne({ id: userId });
+//     if (!userRoomDetail) {
+//       userRoom.create({
+//         id: userId,
+//         roomId: [roomId],
+//       });
+//     } else {
+//       // put update เพิ่มห้องเข้าไป
+//     }
+//   } catch (err) {
+//     return res.status(500).json({ error: err });
+//   }
+// });
 
 module.exports = router;
 

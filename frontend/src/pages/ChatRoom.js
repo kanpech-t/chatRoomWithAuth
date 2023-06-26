@@ -45,12 +45,11 @@ const ChatRoom = () => {
           },
         });
       } catch (err) {
-        console.log("unauth");
         navigate("/login");
       }
     };
     authCheck();
-  });
+  }, []);
 
   //   handle when room change
 

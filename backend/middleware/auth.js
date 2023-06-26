@@ -13,7 +13,7 @@ const jwtOptions = {
 };
 
 const jwtAuth = new JwtStrategy(jwtOptions, (payload, done) => {
-  done(null, true);
+  done(null, payload);
   //   else done(null, false);
 });
 

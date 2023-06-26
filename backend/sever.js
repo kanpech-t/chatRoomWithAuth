@@ -90,7 +90,7 @@ io.use(
         }
       } catch (err) {
         // return error
-        console.log("3");
+    
         return done(err);
       }
     }
