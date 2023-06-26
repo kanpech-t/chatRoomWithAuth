@@ -11,7 +11,7 @@ import { io } from "socket.io-client";
 const ChatRoom = () => {
   const navigate = useNavigate();
 
-  const [cookies] = useCookies(["token"]);
+  const [cookies, removeCookie] = useCookies(["token"]);
 
   // ====================== useRef ======================
 
@@ -36,7 +36,24 @@ const ChatRoom = () => {
 
   // ====================== useEffect ======================
 
+  useEffect(() => {
+    const authCheck = async () => {
+      try {
+        const chatHistory = await axios.get(`http://localhost:4000/auth`, {
+          headers: {
+            Authorization: `${cookies.token}`,
+          },
+        });
+      } catch (err) {
+        console.log("unauth");
+        navigate("/login");
+      }
+    };
+    authCheck();
+  });
+
   //   handle when room change
+
   useEffect(() => {
     if (currentRoom !== "") {
       const socket = io("http://localhost:4000", {
@@ -89,7 +106,6 @@ const ChatRoom = () => {
     e.preventDefault();
 
     if (selectedImage) {
-      console.log(selectedImage);
       currentSocket.emit("image", {
         room: currentRoom,
         user: currentUser,
@@ -135,7 +151,7 @@ const ChatRoom = () => {
         },
       }
     );
-    console.log(chatHistory);
+
     setAllMessage(chatHistory.data);
   };
 
@@ -148,10 +164,11 @@ const ChatRoom = () => {
           <button
             className="cursor-pointer flex items-center text-[16px] font-semibold"
             onClick={() => {
+              removeCookie("token", { path: "/", domain: "localhost" });
               navigate(-1);
             }}
           >
-            <BiArrowBack className="mr-[3px]" /> Go Back
+            <BiArrowBack className="mr-[3px]" /> Logout
           </button>
           <div className="mt-[10px] flex gap-[20px]">
             <h1 className="text-[16px] font-semibold">Current user</h1>
@@ -283,7 +300,7 @@ const ChatRoom = () => {
                 name="myImage"
                 onChange={async (event) => {
                   const file = event.target.files[0];
-                  console.log(file);
+
                   try {
                     const base64Data = await fileToBase64(file);
                     setSelectedImage(base64Data);

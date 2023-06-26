@@ -64,10 +64,6 @@ const comparePasswords = async (password, hashedPassword) => {
 
 // =================== request ===================
 
-router.get("/balance", (req, res) => {
-  res.send("ยอดเงินคงเหลือ 50");
-});
-
 router.post("/register", async (req, res, next) => {
   try {
     const user = await User.findOne({ username: req.body.username });
@@ -98,6 +94,10 @@ router.post("/login", loginMiddleware, (req, res) => {
     maxAge: 3600000,
   });
   res.status(200).json({ message: "login success" });
+});
+
+router.get("/auth", (req, res) => {
+  res.json({ message: "authority" });
 });
 
 module.exports = router;
