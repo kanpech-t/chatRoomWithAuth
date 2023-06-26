@@ -78,7 +78,6 @@ const ChatRoom = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     const searchValue = searchInput.current.value;
-
     searchInput.current.value = "";
 
     setFilterRoom(() =>
@@ -154,6 +153,33 @@ const ChatRoom = () => {
           >
             <BiArrowBack className="mr-[3px]" /> Go Back
           </button>
+          {/* select Name */}
+          {/* <div className="mt-[10px]">
+            <h1 className="text-[16px] font-semibold">Select Name</h1>
+
+            <div className="flex gap-[20px]">
+              <span
+                className={`cursor-pointer ${
+                  currentUser === "Maikan" ? "text-blue-400" : ""
+                }`}
+                onClick={() => {
+                  setCurrentUser("Maikan");
+                }}
+              >
+                Maikan
+              </span>
+              <span
+                className={`cursor-pointer ${
+                  currentUser === "Kanpech" ? "text-blue-400" : ""
+                }`}
+                onClick={() => {
+                  setCurrentUser("Kanpech");
+                }}
+              >
+                Kanpech
+              </span>
+            </div>
+          </div> */}
           <div className="mt-[10px] flex gap-[20px]">
             <h1 className="text-[16px] font-semibold">Current user</h1>
             <span>{currentUser}</span>

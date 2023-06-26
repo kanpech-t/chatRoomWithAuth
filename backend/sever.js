@@ -13,7 +13,6 @@ require("dotenv").config();
 
 // ======================= Router =======================
 
-const products = require("./routes/product");
 const login = require("./routes/login");
 const chatRoom = require("./routes/chatRoom");
 
@@ -25,7 +24,7 @@ const auth = require("./middleware/auth.js");
 
 const User = require("./models/User.js");
 const room = require("./models/Room.js");
-const userRoom = require("./models/User.js");
+const userRoom = require("./models/UserRoom.js");
 const message = require("./models/Message.js");
 
 // ======================= Const =======================
@@ -166,6 +165,5 @@ io.on("connection", (socket) => {
 
 // ======================= Router =======================
 
-app.use("/products", products);
 app.use("/", login);
 app.use("/chatroom", chatRoom);

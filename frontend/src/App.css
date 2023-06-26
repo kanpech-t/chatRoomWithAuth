@@ -1,3 +1,18 @@
+.Nav_bar {
+  display: flex;
+  height: 100px;
+  width: 100%;
+  background-color: gray;
+}
+
+.Nav_bar li {
+  margin: auto;
+}
+
+.active {
+  color: red;
+}
+
 * {
   box-sizing: border-box;
 }
