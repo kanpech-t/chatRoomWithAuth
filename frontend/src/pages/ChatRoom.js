@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { MdSend } from "react-icons/md";
 import { BiArrowBack } from "react-icons/bi";
+import { AiOutlineMenu } from "react-icons/ai";
 import { useState, useRef, useEffect } from "react";
 import { useCookies } from "react-cookie";
 
@@ -20,35 +21,26 @@ const ChatRoom = () => {
 
   // ====================== const ======================
 
-  const mockupRoom = ["1234", "6392", "0834", "8239", "0347"];
-
   // ====================== Stage ======================
 
   const [selectedImage, setSelectedImage] = useState(null);
 
-  const [filterRoom, setFilterRoom] = useState(mockupRoom);
+  const [defaultRoom, setDefaultRoom] = useState([]);
+  const [filterRoom, setFilterRoom] = useState([]);
 
   const [currentUser, setCurrentUser] = useState("");
-  const [currentRoom, setCurrentRoom] = useState("1234");
+  const [currentRoom, setCurrentRoom] = useState("");
   const [currentSocket, setCurrentSocket] = useState(null);
 
   const [allMessage, setAllMessage] = useState([]);
 
   // ====================== useEffect ======================
 
+  // check auth
+
   useEffect(() => {
-    const authCheck = async () => {
-      try {
-        const chatHistory = await axios.get(`http://localhost:4000/auth`, {
-          headers: {
-            Authorization: `${cookies.token}`,
-          },
-        });
-      } catch (err) {
-        navigate("/login");
-      }
-    };
     authCheck();
+    getAllRoom();
   }, []);
 
   //   handle when room change
@@ -97,7 +89,7 @@ const ChatRoom = () => {
     searchInput.current.value = "";
 
     setFilterRoom(() =>
-      mockupRoom.filter((data) => data.includes(searchValue))
+      defaultRoom.filter((data) => data.roomId.includes(searchValue))
     );
   };
 
@@ -154,6 +146,30 @@ const ChatRoom = () => {
     setAllMessage(chatHistory.data);
   };
 
+  const authCheck = async () => {
+    try {
+      const chatHistory = await axios.get(`http://localhost:4000/auth`, {
+        headers: {
+          Authorization: `${cookies.token}`,
+        },
+      });
+    } catch (err) {
+      navigate("/login");
+    }
+  };
+
+  const getAllRoom = async () => {
+    try {
+      const getRoom = await axios.get(`http://localhost:4000/chatroom/`, {
+        headers: {
+          Authorization: `${cookies.token}`,
+        },
+      });
+      setFilterRoom(getRoom.data);
+      setDefaultRoom(getRoom.data);
+    } catch (err) {}
+  };
+
   return (
     <>
       <div className="flex  min-h-[720px]  ">
@@ -196,20 +212,23 @@ const ChatRoom = () => {
                   No data
                 </div>
               )}
-              {filterRoom.map((roomId, index) => (
+              {filterRoom.map((data, index) => (
                 <div
                   className={`border-b h-[80px] hover:bg-blue-100 cursor-pointer flex items-center font-semibold ${
-                    currentRoom === roomId ? "bg-blue-100" : ""
+                    currentRoom === data.roomId ? "bg-blue-100" : ""
                   }`}
                   key={index}
                   onClick={() => {
-                    setCurrentRoom(roomId);
+                    setCurrentRoom(data.roomId);
                   }}
                 >
-                  RoomId {roomId}
+                  {data.roomName} Id {data.roomId}
                 </div>
               ))}
             </div>
+          </div>
+          <div className="flex justify-center items-center absolute bottom-[24px]   shadow-2xl w-[75px] h-[75px] rounded-full active:opacity-50 cursor-pointer">
+            <AiOutlineMenu className="text-[30px]" />
           </div>
         </div>
         {/* chat room  */}
