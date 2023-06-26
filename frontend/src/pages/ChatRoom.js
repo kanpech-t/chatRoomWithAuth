@@ -29,7 +29,7 @@ const ChatRoom = () => {
   const [filterRoom, setFilterRoom] = useState(mockupRoom);
 
   const [currentUser, setCurrentUser] = useState("");
-  const [currentRoom, setCurrentRoom] = useState("");
+  const [currentRoom, setCurrentRoom] = useState("1234");
   const [currentSocket, setCurrentSocket] = useState(null);
 
   const [allMessage, setAllMessage] = useState([]);
@@ -50,7 +50,7 @@ const ChatRoom = () => {
         setCurrentUser(data.username);
         username = data.username;
         await getChatHistory();
-        socket.emit("joinRoom1", { room: currentRoom, user: data.username });
+        socket.emit("joinRoom", { room: currentRoom, user: data.username });
       });
 
       socket.on("messageControl", (data) => {
@@ -153,33 +153,6 @@ const ChatRoom = () => {
           >
             <BiArrowBack className="mr-[3px]" /> Go Back
           </button>
-          {/* select Name */}
-          {/* <div className="mt-[10px]">
-            <h1 className="text-[16px] font-semibold">Select Name</h1>
-
-            <div className="flex gap-[20px]">
-              <span
-                className={`cursor-pointer ${
-                  currentUser === "Maikan" ? "text-blue-400" : ""
-                }`}
-                onClick={() => {
-                  setCurrentUser("Maikan");
-                }}
-              >
-                Maikan
-              </span>
-              <span
-                className={`cursor-pointer ${
-                  currentUser === "Kanpech" ? "text-blue-400" : ""
-                }`}
-                onClick={() => {
-                  setCurrentUser("Kanpech");
-                }}
-              >
-                Kanpech
-              </span>
-            </div>
-          </div> */}
           <div className="mt-[10px] flex gap-[20px]">
             <h1 className="text-[16px] font-semibold">Current user</h1>
             <span>{currentUser}</span>
@@ -233,7 +206,7 @@ const ChatRoom = () => {
               {allMessage.map((data, index) => {
                 if (data.type === "inform") {
                   return (
-                    <div className="flex justify-center">{data.message}</div>
+                    <div className="flex justify-center">{data.content}</div>
                   );
                 }
                 if (data.from !== currentUser) {
@@ -246,10 +219,14 @@ const ChatRoom = () => {
                         {data.from}
                       </h1>
                       {data.type === "image" ? (
-                        <img key={index} src={data.img} alt="Base64 Image" />
+                        <img
+                          key={index}
+                          src={data.content}
+                          alt="Base64 Image"
+                        />
                       ) : (
                         <div className="break-words w-[140px]">
-                          {data.message}
+                          {data.content}
                         </div>
                       )}
                     </div>
@@ -265,10 +242,14 @@ const ChatRoom = () => {
                           {data.from}
                         </h1>
                         {data.type === "image" ? (
-                          <img key={index} src={data.img} alt="Base64 Image" />
+                          <img
+                            key={index}
+                            src={data.content}
+                            alt="Base64 Image"
+                          />
                         ) : (
                           <div className="break-words w-[140px]">
-                            {data.message}
+                            {data.content}
                           </div>
                         )}
                       </div>

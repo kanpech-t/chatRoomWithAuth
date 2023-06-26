@@ -8,12 +8,16 @@ import Cookies from "js-cookie";
 const Login = () => {
   const navigate = useNavigate();
 
+  // ====================== useRef ======================
+
   const username = useRef();
   const password = useRef();
 
   const registerUsername = useRef();
   const registerPassword = useRef();
   const registerConfirmPassword = useRef();
+
+  // ====================== useState ======================
 
   const [displayRegister, setDisplayRegister] = useState(false);
   const [displayPassword, setDisplayPassword] = useState(false);

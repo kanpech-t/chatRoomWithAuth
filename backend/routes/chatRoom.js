@@ -20,9 +20,8 @@ router.get("/:roomId", async (req, res, next) => {
           const userDetail = await user.findOne({ id: data.fromId });
           return {
             type: data.type,
-            message: data.content,
+            content: data.content,
             from: userDetail.username,
-            img: data.content,
           };
         })
       );

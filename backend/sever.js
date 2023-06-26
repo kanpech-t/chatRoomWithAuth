@@ -98,17 +98,16 @@ io.use(
 
 io.on("connection", (socket) => {
   console.log(`a user connected `);
-  // console.log(socket.request.user);
 
   socket.emit("success", socket.request.user);
 
-  socket.on("joinRoom1", (data) => {
+  socket.on("joinRoom", (data) => {
     console.log(data);
     socket.join(data.room);
     console.log(`Socket joined room: ${data.room}`);
     io.to(data.room).emit("messageControl", {
       type: "inform",
-      message: `${data.user} has joined the chat`,
+      content: `${data.user} has joined the chat`,
       from: data.user,
     });
   });
@@ -117,7 +116,7 @@ io.on("connection", (socket) => {
     console.log("leftRoom", data);
     io.to(data.room).emit("messageControl", {
       type: "inform",
-      message: `${data.message}`,
+      content: `${data.message}`,
       from: data.user,
     });
   });
@@ -136,7 +135,7 @@ io.on("connection", (socket) => {
     // sent message to user
     io.to(data.room).emit("messageControl", {
       type: "chat",
-      message: data.message,
+      content: data.message,
       from: data.user,
     });
   });
@@ -152,9 +151,8 @@ io.on("connection", (socket) => {
     });
     io.to(data.room).emit("messageControl", {
       type: "image",
-      message: data.img,
+      content: data.img,
       from: data.user,
-      img: data.img,
     });
   });
 
