@@ -83,15 +83,6 @@ const Login = () => {
 
   return (
     <>
-      <div
-        className="absolute top-[24px] left-[24px] cursor-pointer"
-        onClick={() => {
-          navigate(-1);
-        }}
-      >
-        go Back
-      </div>
-
       <div className="flex flex-col gap-[20px] justify-center items-center w-[100%] h-[100vh]">
         {!displayRegister ? (
           // login
