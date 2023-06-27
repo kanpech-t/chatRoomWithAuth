@@ -1,7 +1,10 @@
 import { useNavigate } from "react-router-dom";
+
 import { MdSend } from "react-icons/md";
 import { BiArrowBack } from "react-icons/bi";
 import { AiOutlineMenu } from "react-icons/ai";
+import { HiX } from "react-icons/hi";
+
 import { useState, useRef, useEffect } from "react";
 import { useCookies } from "react-cookie";
 
@@ -33,6 +36,9 @@ const ChatRoom = () => {
   const [currentSocket, setCurrentSocket] = useState(null);
 
   const [allMessage, setAllMessage] = useState([]);
+
+  const [displayMenu, setDisplayMenu] = useState(false);
+  const [displayCreateRoom, setDisplayCreateRoom] = useState(false);
 
   // ====================== useEffect ======================
 
@@ -170,14 +176,39 @@ const ChatRoom = () => {
     } catch (err) {}
   };
 
+  // ====================== SupComponent ======================
+
+  const createRoom = () => {
+    return (
+      <div className="w-[300px] h-[150px] p-[24px] bg-white rounded-lg absolute top-[50%] flex justify-center flex-col left-[50%] translate-y-[-50%] translate-x-[-50%] shadow-2xl ">
+        <HiX
+          onClick={() => setDisplayCreateRoom(false)}
+          className="absolute top-[16px] right-[16px] cursor-pointer "
+        />
+        <input
+          placeholder="roomId"
+          className="border-b w-[100%] outline-none"
+        ></input>
+        <input
+          placeholder="roomName"
+          className="border-b mt-[10px] w-[100%] outline-none"
+        ></input>
+        <button className="mt-[10px] text-[16px] font-semibold ">
+          create room
+        </button>
+      </div>
+    );
+  };
+
   return (
     <>
+      {displayCreateRoom && createRoom()}
       <div className="flex  min-h-[720px]  ">
         {/* left block */}
-        <div className="w-[350px]  h-[100vh] border-r p-[24px]">
+        <div className="w-[350px]  h-[100vh] border-r py-[24px]">
           {" "}
           <button
-            className="cursor-pointer flex items-center text-[16px] font-semibold"
+            className="cursor-pointer flex items-center text-[16px] px-[24px] font-semibold"
             onClick={() => {
               removeCookie("token", { path: "/", domain: "localhost" });
               navigate(-1);
@@ -185,13 +216,13 @@ const ChatRoom = () => {
           >
             <BiArrowBack className="mr-[3px]" /> Logout
           </button>
-          <div className="mt-[10px] flex gap-[20px]">
+          <div className="mt-[10px] flex gap-[20px] px-[24px]">
             <h1 className="text-[16px] font-semibold">Current user</h1>
             <span>{currentUser}</span>
           </div>
-          <div className="border-t mt-[15px]">
+          <div className="border-t mt-[15px] ">
             {/* search input */}
-            <div className="flex items-center">
+            <div className="flex items-center px-[24px]">
               <form>
                 <input
                   ref={searchInput}
@@ -206,7 +237,8 @@ const ChatRoom = () => {
                 </button>
               </form>
             </div>
-            <div className="mt-[15px] border-t">
+            {/* room */}
+            <div className="mt-[15px] border-t ">
               {filterRoom.length === 0 && (
                 <div className="flex justify-center text-[16px] font-semibold mt-[50px]">
                   No data
@@ -214,7 +246,7 @@ const ChatRoom = () => {
               )}
               {filterRoom.map((data, index) => (
                 <div
-                  className={`border-b h-[80px] hover:bg-blue-100 cursor-pointer flex items-center font-semibold ${
+                  className={`px-[24px] border-b h-[80px] hover:bg-blue-100 cursor-pointer flex items-center font-semibold ${
                     currentRoom === data.roomId ? "bg-blue-100" : ""
                   }`}
                   key={index}
@@ -227,8 +259,33 @@ const ChatRoom = () => {
               ))}
             </div>
           </div>
-          <div className="flex justify-center items-center absolute bottom-[24px]   shadow-2xl w-[75px] h-[75px] rounded-full active:opacity-50 cursor-pointer">
-            <AiOutlineMenu className="text-[30px]" />
+          <div>
+            {/* menudetail */}
+            {displayMenu ? (
+              <div className="absolute bottom-[24px] py-[24px] w-[150px] left-[24px] rounded-lg shadow-2xl h-[200px] ">
+                <HiX
+                  className="absolute right-[10px] top-[8px] cursor-pointer"
+                  onClick={() => setDisplayMenu(!displayMenu)}
+                />
+                <div
+                  className="p-[16px] text-[16px] hover:bg-blue-100 cursor-pointer font-semibold"
+                  onClick={() => setDisplayCreateRoom(true)}
+                >
+                  create room
+                </div>
+                <div className="p-[16px] text-[16px] hover:bg-blue-100 cursor-pointer font-semibold">
+                  join room
+                </div>
+              </div>
+            ) : (
+              // menu icon
+              <div
+                className="flex justify-center items-center absolute bottom-[24px]   shadow-2xl w-[75px] h-[75px] rounded-full active:opacity-50 cursor-pointer left-[24px]"
+                onClick={() => setDisplayMenu(!displayMenu)}
+              >
+                <AiOutlineMenu className="text-[30px]" />
+              </div>
+            )}
           </div>
         </div>
         {/* chat room  */}
