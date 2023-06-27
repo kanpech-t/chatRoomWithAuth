@@ -6,6 +6,8 @@ const user = require("../models/User.js");
 const Room = require("../models/Room.js");
 const { v4: uuidv4 } = require("uuid");
 
+// const io = require("../sever.js");
+
 // middleware
 router.use(express.json());
 
@@ -74,6 +76,7 @@ router.post("/create", async (req, res) => {
 });
 
 router.post("/join", async (req, res) => {
+  const io = req.app.get("socketio");
   const userId = req.user.id;
   const roomId = req.body.roomId;
   let roomDuplicate = false;
@@ -103,32 +106,19 @@ router.post("/join", async (req, res) => {
     id: userId,
     roomId: roomId,
   });
+  io.to(roomId).emit("messageControl", {
+    type: "inform",
+    content: `${req.user.sub} has joined the chat`,
+    from: req.user.sub,
+  });
+  const createProduct = await message.create({
+    type: "inform",
+    messageId: uuidv4(),
+    content: `${req.user.sub} has joined the chat`,
+    roomId: roomId,
+    fromId: req.user.id,
+  });
   return res.json("success");
 });
-// ไว้ก่อน เยอะชห
-// router.put("/join", async (req, res, next) => {
-//   try {
-//     const userId = req.body.id;
-//     const roomId = req.body.roomId;
-//     if (!userId || !roomId) {
-//       return res
-//         .status(400)
-//         .json({ message: "please sent data in your header" });
-//     }
-//     const userRoomDetail = userRoom.findOne({ id: userId });
-//     if (!userRoomDetail) {
-//       userRoom.create({
-//         id: userId,
-//         roomId: [roomId],
-//       });
-//     } else {
-//       // put update เพิ่มห้องเข้าไป
-//     }
-//   } catch (err) {
-//     return res.status(500).json({ error: err });
-//   }
-// });
 
 module.exports = router;
-
-// const userRoomDetail = userRoom.findOne({ id: userId });

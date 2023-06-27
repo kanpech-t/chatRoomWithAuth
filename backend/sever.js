@@ -41,6 +41,7 @@ const io = new Server(server, {
   maxHttpBufferSize: 4e6,
 });
 
+app.set("socketio", io);
 // connect to mongodb
 
 mongoose
@@ -90,7 +91,7 @@ io.use(
         }
       } catch (err) {
         // return error
-    
+
         return done(err);
       }
     }
@@ -106,11 +107,11 @@ io.on("connection", (socket) => {
     console.log(data);
     socket.join(data.room);
     console.log(`Socket joined room: ${data.room}`);
-    io.to(data.room).emit("messageControl", {
-      type: "inform",
-      content: `${data.user} has joined the chat`,
-      from: data.user,
-    });
+    // io.to(data.room).emit("messageControl", {
+    //   type: "inform",
+    //   content: `${data.user} has joined the chat`,
+    //   from: data.user,
+    // });
   });
 
   socket.on("leftRoom", (data) => {
@@ -124,10 +125,8 @@ io.on("connection", (socket) => {
 
   // accept message from frontend
   socket.on("messageControl", async (data) => {
-    console.log("Received message:", data);
-    // add message data to database
     const createProduct = await message.create({
-      type: "chat",
+      type: data.type,
       messageId: uuidv4(),
       content: data.message,
       roomId: data.room,
@@ -135,24 +134,8 @@ io.on("connection", (socket) => {
     });
     // sent message to user
     io.to(data.room).emit("messageControl", {
-      type: "chat",
+      type: data.type,
       content: data.message,
-      from: data.user,
-    });
-  });
-
-  socket.on("image", async (data) => {
-    console.log("image", data);
-    const createProduct = await message.create({
-      type: "image",
-      messageId: uuidv4(),
-      content: data.img,
-      roomId: data.room,
-      fromId: socket.request.user.id,
-    });
-    io.to(data.room).emit("messageControl", {
-      type: "image",
-      content: data.img,
       from: data.user,
     });
   });
@@ -162,6 +145,7 @@ io.on("connection", (socket) => {
   });
 });
 
+module.exports = io;
 // ======================= Router =======================
 
 app.use("/", login);

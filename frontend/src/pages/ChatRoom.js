@@ -44,6 +44,7 @@ const ChatRoom = () => {
   const [displaySidebarLoading, setDisplaySidebarLoading] = useState(false);
   const [displayJoinRoom, setDisplayJoinRoom] = useState(false);
   const [displayJoinRoomLoading, setDisplayJoinRoomLoading] = useState(false);
+  const [displayChatLoding, setDisplatChatLoading] = useState(false);
 
   const [roomIdInput, setRoomIdInput] = useState("");
   const [roomNameInput, setRoomNameInput] = useState("");
@@ -63,6 +64,7 @@ const ChatRoom = () => {
   //   handle when room change
 
   useEffect(() => {
+    setDisplatChatLoading(true);
     if (currentRoom !== "") {
       const socket = io("http://localhost:4000", {
         query: `auth_token=${cookies.token}`,
@@ -112,12 +114,12 @@ const ChatRoom = () => {
 
   const handleSentMessage = (e) => {
     e.preventDefault();
-
     if (selectedImage) {
-      currentSocket.emit("image", {
+      currentSocket.emit("messageControl", {
+        type: "image",
         room: currentRoom,
         user: currentUser,
-        img: selectedImage,
+        message: selectedImage,
       });
       messageInput.current.value = "";
       setSelectedImage(null);
@@ -125,10 +127,10 @@ const ChatRoom = () => {
       const messageValue = messageInput.current.value;
       messageInput.current.value = "";
       currentSocket.emit("messageControl", {
+        type: "chat",
         user: currentUser,
         room: currentRoom,
         message: messageValue,
-        img: selectedImage ? selectedImage : null,
       });
     }
   };
@@ -219,7 +221,7 @@ const ChatRoom = () => {
         },
       }
     );
-
+    setDisplatChatLoading(false);
     setAllMessage(chatHistory.data);
   };
 
@@ -450,46 +452,28 @@ const ChatRoom = () => {
           </div>
         </div>
         {/* chat room  */}
-        <div className=" h-[100vh] overflow-y-auto grow flex flex-col">
-          <div className="border-b p-[24px] text-[24px] font-semibold">
-            <h1>Room {currentRoom}</h1>
+        {displayChatLoding ? (
+          <div className=" grow flex justify-center items-center">
+            <AiOutlineLoading3Quarters className="animate-spin text-[80px]" />
           </div>
-          <div className="p-[24px] flex flex-col grow">
-            <div className="grow ">
-              {allMessage.map((data, index) => {
-                if (data.type === "inform") {
-                  return (
-                    <div className="flex justify-center">{data.content}</div>
-                  );
-                }
-                if (data.from !== currentUser) {
-                  return (
-                    <div
-                      key={index}
-                      className="min-h-[75px] bg-blue-100 mb-[10px] w-[150px] rounded-md p-[5px]"
-                    >
-                      <h1 className=" text-[16px] font-semibold">
-                        {data.from}
-                      </h1>
-                      {data.type === "image" ? (
-                        <img
-                          key={index}
-                          src={data.content}
-                          alt="Base64 Image"
-                        />
-                      ) : (
-                        <div className="break-words w-[140px]">
-                          {data.content}
-                        </div>
-                      )}
-                    </div>
-                  );
-                } else {
-                  return (
-                    <div className="flex justify-end">
+        ) : (
+          <div className=" h-[100vh] overflow-y-auto grow flex flex-col">
+            <div className="border-b p-[24px] text-[24px] font-semibold">
+              <h1>Room {currentRoom}</h1>
+            </div>
+            <div className="p-[24px] flex flex-col grow">
+              <div className="grow ">
+                {allMessage.map((data, index) => {
+                  if (data.type === "inform") {
+                    return (
+                      <div className="flex justify-center">{data.content}</div>
+                    );
+                  }
+                  if (data.from !== currentUser) {
+                    return (
                       <div
                         key={index}
-                        className="min-h-[75px] bg-blue-200 mb-[10px] w-[150px] rounded-md p-[5px] "
+                        className="min-h-[75px] bg-blue-100 mb-[10px] w-[150px] rounded-md p-[5px]"
                       >
                         <h1 className=" text-[16px] font-semibold">
                           {data.from}
@@ -506,51 +490,75 @@ const ChatRoom = () => {
                           </div>
                         )}
                       </div>
-                    </div>
-                  );
-                }
-              })}
-            </div>
-            <form className="flex items-center ">
-              <input
-                ref={messageInput}
-                className="outline-none grow border-b mr-[20px]"
-                placeholder="send a message"
-              ></input>
-              {selectedImage ? (
-                <img
-                  src={selectedImage}
-                  className="w-[150px] mr-[15px]"
-                  alt="Base64 Image"
-                />
-              ) : (
-                <label for="file-input" className="cursor-pointer mr-[15px]">
-                  Choose File
-                </label>
-              )}
-
-              <input
-                id="file-input"
-                type="file"
-                className="hidden"
-                name="myImage"
-                onChange={async (event) => {
-                  const file = event.target.files[0];
-
-                  try {
-                    const base64Data = await fileToBase64(file);
-                    setSelectedImage(base64Data);
-                  } catch (error) {
-                    console.error("Error converting file to base64:", error);
+                    );
+                  } else {
+                    return (
+                      <div className="flex justify-end">
+                        <div
+                          key={index}
+                          className="min-h-[75px] bg-blue-200 mb-[10px] w-[150px] rounded-md p-[5px] "
+                        >
+                          <h1 className=" text-[16px] font-semibold">
+                            {data.from}
+                          </h1>
+                          {data.type === "image" ? (
+                            <img
+                              key={index}
+                              src={data.content}
+                              alt="Base64 Image"
+                            />
+                          ) : (
+                            <div className="break-words w-[140px]">
+                              {data.content}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
                   }
-                }}
-              />
-              <button onClick={(e) => handleSentMessage(e)}>
-                <MdSend />
-              </button>
-            </form>
+                })}
+              </div>
+              <form className="flex items-center ">
+                <input
+                  ref={messageInput}
+                  className="outline-none grow border-b mr-[20px]"
+                  placeholder="send a message"
+                ></input>
+                {selectedImage ? (
+                  <img
+                    src={selectedImage}
+                    className="w-[150px] mr-[15px]"
+                    alt="Base64 Image"
+                  />
+                ) : (
+                  <label for="file-input" className="cursor-pointer mr-[15px]">
+                    Choose File
+                  </label>
+                )}
+
+                <input
+                  id="file-input"
+                  type="file"
+                  className="hidden"
+                  name="myImage"
+                  onChange={async (event) => {
+                    const file = event.target.files[0];
+
+                    try {
+                      const base64Data = await fileToBase64(file);
+                      setSelectedImage(base64Data);
+                    } catch (error) {
+                      console.error("Error converting file to base64:", error);
+                    }
+                  }}
+                />
+                <button onClick={(e) => handleSentMessage(e)}>
+                  <MdSend />
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   );

@@ -21,7 +21,6 @@ const Login = () => {
 
   const [displayRegister, setDisplayRegister] = useState(false);
   const [displayPassword, setDisplayPassword] = useState(false);
-  const [displaySuccess, setDisplaySuccess] = useState(false);
 
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -192,11 +191,6 @@ const Login = () => {
                 login form
               </span>
             </span>
-          </div>
-        )}
-        {displaySuccess && (
-          <div className="flex justify-center items-center absolute w-[200px] h-[100px] bg-green-400">
-            success
           </div>
         )}
       </div>
