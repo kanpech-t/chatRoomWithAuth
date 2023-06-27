@@ -111,7 +111,7 @@ router.post("/join", async (req, res) => {
     content: `${req.user.sub} has joined the chat`,
     from: req.user.sub,
   });
-  const createProduct = await message.create({
+  const sendMessage = await message.create({
     type: "inform",
     messageId: uuidv4(),
     content: `${req.user.sub} has joined the chat`,
@@ -119,6 +119,34 @@ router.post("/join", async (req, res) => {
     fromId: req.user.id,
   });
   return res.json("success");
+});
+
+router.delete("/leave", async (req, res) => {
+  try {
+    const roomId = req.body.roomId;
+    const io = req.app.get("socketio");
+    const deleteRoom = await userRoom.deleteOne({
+      roomId: roomId,
+      id: req.user.id,
+    });
+    if (deleteRoom.deletedCount === 1) {
+      io.to(roomId).emit("messageControl", {
+        type: "inform",
+        content: `${req.user.sub} has left the chat`,
+        from: req.user.sub,
+      });
+      const sendMessage = await message.create({
+        type: "inform",
+        messageId: uuidv4(),
+        content: `${req.user.sub} has left the chat`,
+        roomId: roomId,
+        fromId: req.user.id,
+      });
+      return res.json({ message: "success" });
+    } else {
+      return res.status(500).json({ message: "you didn't join that room" });
+    }
+  } catch (err) {}
 });
 
 module.exports = router;

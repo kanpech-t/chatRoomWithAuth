@@ -420,7 +420,7 @@ const ChatRoom = () => {
                   onClick={() => setDisplayMenu(!displayMenu)}
                 />
                 <div
-                  className="p-[16px] text-[16px] hover:bg-blue-100 cursor-pointer font-semibold"
+                  className="p-[16px] text-[16px] hover:bg-blue-100 cursor-pointer font-semibold "
                   onClick={() => {
                     setDisplayMenu(false);
                     setDisplayCreateRoom(true);
@@ -430,7 +430,7 @@ const ChatRoom = () => {
                   create room
                 </div>
                 <div
-                  className="p-[16px] text-[16px] hover:bg-blue-100 cursor-pointer font-semibold"
+                  className="p-[16px] text-[16px] hover:bg-blue-100 cursor-pointer font-semibold "
                   onClick={() => {
                     setDisplayMenu(false);
                     setDisplayCreateRoom(false);
@@ -458,8 +458,12 @@ const ChatRoom = () => {
           </div>
         ) : (
           <div className=" h-[100vh] overflow-y-auto grow flex flex-col">
-            <div className="border-b p-[24px] text-[24px] font-semibold">
+            <div className="border-b p-[24px] text-[24px] font-semibold flex justify-between items-center">
               <h1>Room {currentRoom}</h1>
+              <div className="">
+                {/* <AiOutlineMenu className="cursor-pointer active:opacity-50" /> */}
+                {/* <div className=" absolute right-[100px] top-[100px] w-[200px] h-[200px] bg-black"></div> */}
+              </div>
             </div>
             <div className="p-[24px] flex flex-col grow">
               <div className="grow ">
