@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 
 import { MdSend } from "react-icons/md";
 import { BiArrowBack } from "react-icons/bi";
-import { AiOutlineMenu } from "react-icons/ai";
+import { AiOutlineMenu, AiOutlineLoading3Quarters } from "react-icons/ai";
 import { HiX } from "react-icons/hi";
 
 import { useState, useRef, useEffect } from "react";
@@ -39,14 +39,25 @@ const ChatRoom = () => {
 
   const [displayMenu, setDisplayMenu] = useState(false);
   const [displayCreateRoom, setDisplayCreateRoom] = useState(false);
+  const [displayCreateRoomLoading, setDisplayCreateRoomLoading] =
+    useState(false);
+  const [displaySidebarLoading, setDisplaySidebarLoading] = useState(false);
+  const [displayJoinRoom, setDisplayJoinRoom] = useState(false);
+  const [displayJoinRoomLoading, setDisplayJoinRoomLoading] = useState(false);
+
+  const [roomIdInput, setRoomIdInput] = useState("");
+  const [roomNameInput, setRoomNameInput] = useState("");
+  const [roomIdJoinInput, setRoomIdJoinInput] = useState("");
+
+  const [errorCreateMessage, setErrorCreateMessage] = useState("");
+  const [errorJoinMessage, setErrorJoinMessage] = useState("");
 
   // ====================== useEffect ======================
 
-  // check auth
+  // check auth and get all userRoom
 
   useEffect(() => {
-    authCheck();
-    getAllRoom();
+    authCheck().then(getAllRoom());
   }, []);
 
   //   handle when room change
@@ -122,6 +133,66 @@ const ChatRoom = () => {
     }
   };
 
+  const handleCreateRoom = async (e) => {
+    try {
+      e.preventDefault();
+      setDisplayCreateRoomLoading(true);
+      if (roomIdInput === "" || roomNameInput === "") {
+        setErrorCreateMessage("please enter all information");
+        setDisplayCreateRoomLoading(false);
+      } else {
+        const createRoom = await axios.post(
+          "http://localhost:4000/chatroom/create",
+          { roomId: roomIdInput, roomName: roomNameInput },
+          {
+            headers: {
+              Authorization: `${cookies.token}`,
+            },
+          }
+        );
+        setDisplayCreateRoom(false);
+        setRoomIdInput("");
+        setRoomNameInput("");
+        // refetch room
+        setDisplayCreateRoomLoading(false);
+        getAllRoom();
+      }
+    } catch (err) {
+      setErrorCreateMessage(err.response.data.message);
+      setDisplayCreateRoomLoading(false);
+      console.log("handleCreateRoomError", err);
+    }
+  };
+
+  const handleJoinRoom = async (e) => {
+    try {
+      e.preventDefault();
+      setDisplayJoinRoomLoading(true);
+      if (roomIdJoinInput === "") {
+        setErrorJoinMessage("please enter all information");
+      } else {
+        const joinRoom = await axios.post(
+          "http://localhost:4000/chatroom/join",
+          { roomId: roomIdJoinInput },
+          {
+            headers: {
+              Authorization: `${cookies.token}`,
+            },
+          }
+        );
+        setRoomIdJoinInput("");
+        setDisplayJoinRoom(false);
+
+        getAllRoom();
+      }
+      setDisplayJoinRoomLoading(false);
+    } catch (err) {
+      setErrorJoinMessage(err.response.data.message);
+      setDisplayJoinRoomLoading(false);
+      console.log(err);
+    }
+  };
+
   function fileToBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -159,6 +230,7 @@ const ChatRoom = () => {
           Authorization: `${cookies.token}`,
         },
       });
+      setCurrentUser(chatHistory.data.username);
     } catch (err) {
       navigate("/login");
     }
@@ -166,46 +238,118 @@ const ChatRoom = () => {
 
   const getAllRoom = async () => {
     try {
+      setDisplaySidebarLoading(true);
       const getRoom = await axios.get(`http://localhost:4000/chatroom/`, {
         headers: {
           Authorization: `${cookies.token}`,
         },
       });
+
       setFilterRoom(getRoom.data);
       setDefaultRoom(getRoom.data);
-    } catch (err) {}
+      setDisplaySidebarLoading(false);
+      if (getRoom.data[0]) {
+        setCurrentRoom(getRoom.data[0].roomId);
+      }
+    } catch (err) {
+      setDisplaySidebarLoading(false);
+    }
   };
 
   // ====================== SupComponent ======================
 
   const createRoom = () => {
     return (
-      <div className="w-[300px] h-[150px] p-[24px] bg-white rounded-lg absolute top-[50%] flex justify-center flex-col left-[50%] translate-y-[-50%] translate-x-[-50%] shadow-2xl ">
+      <div className="w-[300px] h-[180px] p-[24px] bg-white rounded-lg absolute top-[50%] flex  flex-col left-[50%] translate-y-[-50%] translate-x-[-50%] shadow-2xl ">
         <HiX
           onClick={() => setDisplayCreateRoom(false)}
           className="absolute top-[16px] right-[16px] cursor-pointer "
         />
         <input
           placeholder="roomId"
-          className="border-b w-[100%] outline-none"
+          className="border-b w-[100%] outline-none mt-[8px]"
+          onChange={(e) => {
+            setErrorCreateMessage("");
+            setRoomIdInput(e.target.value);
+          }}
+          value={roomIdInput}
         ></input>
         <input
           placeholder="roomName"
           className="border-b mt-[10px] w-[100%] outline-none"
+          onChange={(e) => {
+            setErrorCreateMessage("");
+            setRoomNameInput(e.target.value);
+          }}
+          value={roomNameInput}
         ></input>
-        <button className="mt-[10px] text-[16px] font-semibold ">
-          create room
-        </button>
+        {/* err message */}
+        {errorCreateMessage !== "" && (
+          <span className="text-red-500 absolute top-[95px]">
+            {errorCreateMessage}
+          </span>
+        )}
+        {displayCreateRoomLoading ? (
+          <div className="mt-[25px] flex justify-center">
+            <AiOutlineLoading3Quarters className="text-[24px] animate-spin" />
+          </div>
+        ) : (
+          <button
+            className="mt-[25px] text-[16px] font-semibold active:opacity-50"
+            onClick={handleCreateRoom}
+          >
+            create room
+          </button>
+        )}
       </div>
+    );
+  };
+
+  const joinRoom = () => {
+    return (
+      <>
+        <div className="w-[300px] h-[130px] p-[24px] bg-white rounded-lg absolute top-[50%] flex  flex-col left-[50%] translate-y-[-50%] translate-x-[-50%] shadow-2xl ">
+          <HiX
+            onClick={() => setDisplayJoinRoom(false)}
+            className="absolute top-[16px] right-[16px] cursor-pointer "
+          />
+          <input
+            placeholder="roomId"
+            className="border-b outline-none mt-[8px]"
+            onChange={(e) => {
+              setRoomIdJoinInput(e.target.value);
+              setErrorJoinMessage("");
+            }}
+          ></input>
+          {errorJoinMessage !== "" && (
+            <span className="text-red-500 absolute top-[60px]">
+              {errorJoinMessage}
+            </span>
+          )}
+          {displayJoinRoomLoading ? (
+            <div className="mt-[25px] flex justify-center">
+              <AiOutlineLoading3Quarters className="text-[24px] animate-spin" />
+            </div>
+          ) : (
+            <button
+              className="mt-[25px] text-[16px] font-semibold active:opacity-50"
+              onClick={handleJoinRoom}
+            >
+              join room
+            </button>
+          )}
+        </div>
+      </>
     );
   };
 
   return (
     <>
       {displayCreateRoom && createRoom()}
+      {displayJoinRoom && joinRoom()}
       <div className="flex  min-h-[720px]  ">
         {/* left block */}
-        <div className="w-[350px]  h-[100vh] border-r py-[24px]">
+        <div className=" w-[350px]  h-[100vh] border-r py-[24px] overflow-y-auto">
           {" "}
           <button
             className="cursor-pointer flex items-center text-[16px] px-[24px] font-semibold"
@@ -220,7 +364,7 @@ const ChatRoom = () => {
             <h1 className="text-[16px] font-semibold">Current user</h1>
             <span>{currentUser}</span>
           </div>
-          <div className="border-t mt-[15px] ">
+          <div className="border-t mt-[15px] flex flex-col ">
             {/* search input */}
             <div className="flex items-center px-[24px]">
               <form>
@@ -238,49 +382,66 @@ const ChatRoom = () => {
               </form>
             </div>
             {/* room */}
-            <div className="mt-[15px] border-t ">
-              {filterRoom.length === 0 && (
-                <div className="flex justify-center text-[16px] font-semibold mt-[50px]">
-                  No data
-                </div>
-              )}
-              {filterRoom.map((data, index) => (
-                <div
-                  className={`px-[24px] border-b h-[80px] hover:bg-blue-100 cursor-pointer flex items-center font-semibold ${
-                    currentRoom === data.roomId ? "bg-blue-100" : ""
-                  }`}
-                  key={index}
-                  onClick={() => {
-                    setCurrentRoom(data.roomId);
-                  }}
-                >
-                  {data.roomName} Id {data.roomId}
-                </div>
-              ))}
-            </div>
+            {displaySidebarLoading ? (
+              <div className="flex justify-center relative h-[400px] ">
+                <AiOutlineLoading3Quarters className="relative top-[200px] text-[60px] animate-spin" />
+              </div>
+            ) : (
+              <div className="mt-[15px] border-t ">
+                {filterRoom.length === 0 && (
+                  <div className="flex justify-center text-[16px] font-semibold mt-[50px]">
+                    No data
+                  </div>
+                )}
+                {filterRoom.map((data, index) => (
+                  <div
+                    className={`px-[24px] border-b h-[80px] hover:bg-blue-100 cursor-pointer flex items-center font-semibold ${
+                      currentRoom === data.roomId ? "bg-blue-100" : ""
+                    }`}
+                    key={index}
+                    onClick={() => {
+                      setCurrentRoom(data.roomId);
+                    }}
+                  >
+                    {data.roomName} Id {data.roomId}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <div>
             {/* menudetail */}
             {displayMenu ? (
-              <div className="absolute bottom-[24px] py-[24px] w-[150px] left-[24px] rounded-lg shadow-2xl h-[200px] ">
+              <div className="absolute bottom-[24px] py-[24px] w-[150px] left-[24px] rounded-lg shadow-2xl h-[200px] bg-white">
                 <HiX
                   className="absolute right-[10px] top-[8px] cursor-pointer"
                   onClick={() => setDisplayMenu(!displayMenu)}
                 />
                 <div
                   className="p-[16px] text-[16px] hover:bg-blue-100 cursor-pointer font-semibold"
-                  onClick={() => setDisplayCreateRoom(true)}
+                  onClick={() => {
+                    setDisplayMenu(false);
+                    setDisplayCreateRoom(true);
+                    setDisplayJoinRoom(false);
+                  }}
                 >
                   create room
                 </div>
-                <div className="p-[16px] text-[16px] hover:bg-blue-100 cursor-pointer font-semibold">
+                <div
+                  className="p-[16px] text-[16px] hover:bg-blue-100 cursor-pointer font-semibold"
+                  onClick={() => {
+                    setDisplayMenu(false);
+                    setDisplayCreateRoom(false);
+                    setDisplayJoinRoom(true);
+                  }}
+                >
                   join room
                 </div>
               </div>
             ) : (
               // menu icon
               <div
-                className="flex justify-center items-center absolute bottom-[24px]   shadow-2xl w-[75px] h-[75px] rounded-full active:opacity-50 cursor-pointer left-[24px]"
+                className="flex justify-center items-center absolute bottom-[24px]   shadow-2xl w-[75px] h-[75px] rounded-full active:opacity-50 cursor-pointer left-[24px] bg-white"
                 onClick={() => setDisplayMenu(!displayMenu)}
               >
                 <AiOutlineMenu className="text-[30px]" />

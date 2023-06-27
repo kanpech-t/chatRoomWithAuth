@@ -29,7 +29,6 @@ router.get("/:roomId", async (req, res, next) => {
     const allMessage = await message.find({ roomId: req.params.roomId });
 
     if (allMessage) {
-      // ต้องเพิ่ม type ของ message นั้นๆด้วย
       const result = await Promise.all(
         allMessage.map(async (data) => {
           const userDetail = await user.findOne({ id: data.fromId });
@@ -67,13 +66,45 @@ router.post("/create", async (req, res) => {
       });
       return res.json({ status: "success" });
     } else {
-      return res.status(500).json({ message: "room already exist" });
+      return res.status(500).json({ message: "roomId already exist" });
     }
   } catch (err) {
-    return res.status(500).json("something went wrong");
+    return res.status(500).json({ message: "something went wrong" });
   }
 });
 
+router.post("/join", async (req, res) => {
+  const userId = req.user.id;
+  const roomId = req.body.roomId;
+  let roomDuplicate = false;
+  let roomExist = false;
+
+  const allUserRoom = await userRoom.find({ id: req.user.id });
+  allUserRoom.map((data) => {
+    if (data.roomId === roomId) {
+      roomDuplicate = true;
+    }
+  });
+  if (roomDuplicate) {
+    return res.status(500).json({ message: "already join the room" });
+  }
+  const allRoom = await userRoom.find();
+  allRoom.map((data) => {
+    if (data.roomId === roomId) {
+      roomExist = true;
+    }
+  });
+
+  if (!roomExist) {
+    return res.status(500).json({ message: "room didn't exist" });
+  }
+
+  const joinRoom = await userRoom.create({
+    id: userId,
+    roomId: roomId,
+  });
+  return res.json("success");
+});
 // ไว้ก่อน เยอะชห
 // router.put("/join", async (req, res, next) => {
 //   try {

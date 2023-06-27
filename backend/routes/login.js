@@ -97,8 +97,7 @@ router.post("/login", loginMiddleware, (req, res) => {
 });
 
 router.get("/auth", (req, res) => {
-
-  res.json({ message: "authority" });
+  res.json({ message: "authority", username: req.user.sub });
 });
 
 module.exports = router;
