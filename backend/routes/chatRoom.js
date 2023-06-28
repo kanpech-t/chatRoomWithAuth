@@ -3,7 +3,7 @@ const router = express.Router();
 const message = require("../models/Message.js");
 const userRoom = require("../models/UserRoom.js");
 const user = require("../models/User.js");
-const Room = require("../models/Room.js");
+const room = require("../models/Room.js");
 const { v4: uuidv4 } = require("uuid");
 
 // const io = require("../sever.js");
@@ -11,13 +11,15 @@ const { v4: uuidv4 } = require("uuid");
 // middleware
 router.use(express.json());
 
+// get all chat that user join
+
 router.get("/", async (req, res) => {
   try {
     const allRoom = await userRoom.find({ id: req.user.id });
     if (allRoom) {
       const result = await Promise.all(
         allRoom.map(async (data) => {
-          const userDetail = await Room.findOne({ roomId: data.roomId });
+          const userDetail = await room.findOne({ roomId: data.roomId });
           return userDetail;
         })
       );
@@ -26,6 +28,7 @@ router.get("/", async (req, res) => {
   } catch (err) {}
 });
 
+// get history of chat
 router.get("/:roomId", async (req, res, next) => {
   try {
     const allMessage = await message.find({ roomId: req.params.roomId });
@@ -56,9 +59,9 @@ router.post("/create", async (req, res) => {
     userId = req.user.id;
 
     //  create in mongodb and user join room
-    const checkRoomExist = await Room.findOne({ roomId: roomId });
+    const checkRoomExist = await room.findOne({ roomId: roomId });
     if (!checkRoomExist) {
-      const createRoom = await Room.create({
+      const createRoom = await room.create({
         roomId: roomId,
         roomName: roomName,
       });
@@ -91,7 +94,7 @@ router.post("/join", async (req, res) => {
   if (roomDuplicate) {
     return res.status(500).json({ message: "already join the room" });
   }
-  const allRoom = await Room.find();
+  const allRoom = await room.find();
   allRoom.map((data) => {
     if (data.roomId === roomId) {
       roomExist = true;
@@ -125,11 +128,11 @@ router.delete("/leave", async (req, res) => {
   try {
     const roomId = req.body.roomId;
     const io = req.app.get("socketio");
-    const deleteRoom = await userRoom.deleteOne({
+    const leaveRoom = await userRoom.deleteOne({
       roomId: roomId,
       id: req.user.id,
     });
-    if (deleteRoom.deletedCount === 1) {
+    if (leaveRoom.deletedCount === 1) {
       io.to(roomId).emit("messageControl", {
         type: "inform",
         content: `${req.user.sub} has left the chat`,
@@ -146,13 +149,27 @@ router.delete("/leave", async (req, res) => {
     } else {
       return res.status(500).json({ message: "you didn't join that room" });
     }
-  } catch (err) {}
+  } catch (err) {
+    return res.status(500).json({ message: "something went wrong" });
+  }
 });
 
 router.delete("/delete", async (req, res) => {
   try {
+    const roomId = req.body.roomId;
+    const deleteUserRoom = await userRoom.deleteMany({
+      roomId: roomId,
+    });
+    const deleteRoom = await room.deleteOne({
+      roomId: roomId,
+    });
+    const deleteMessage = await message.deleteMany({
+      roomId: roomId,
+    });
+    return res.json({ message: "success" });
   } catch (err) {
     console.log(err);
+    return res.status(500).json({ message: "something went wrong" });
   }
 });
 

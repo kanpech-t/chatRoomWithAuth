@@ -53,6 +53,7 @@ const ChatRoom = () => {
 
   const [displayChatLoading, setDisplayChatLoading] = useState(false);
 
+  const [displayToast, setDisplayToast] = useState(false);
   // ========================
 
   const [roomIdInput, setRoomIdInput] = useState("");
@@ -74,6 +75,33 @@ const ChatRoom = () => {
 
   useEffect(() => {
     setDisplayChatLoading(true);
+    const CancelToken = axios.CancelToken;
+    const source = CancelToken.source();
+
+    const getChatHistory = async () => {
+      try {
+        setAllMessage([]);
+        const chatHistory = await axios.get(
+          `http://localhost:4000/chatroom/${currentRoom}`,
+          {
+            cancelToken: source.token,
+            headers: {
+              Authorization: `${cookies.token}`,
+            },
+          }
+        );
+        setDisplayChatLoading(false);
+        setAllMessage(chatHistory.data);
+      } catch (error) {
+        if (axios.isCancel(error)) {
+          console.log("Request canceled:", error.message);
+        } else {
+          setDisplayChatLoading(false);
+          setDisplayToast(true);
+        }
+      }
+    };
+
     if (currentRoom !== "") {
       const socket = io("http://localhost:4000", {
         query: `auth_token=${cookies.token}`,
@@ -98,6 +126,9 @@ const ChatRoom = () => {
       });
 
       return () => {
+        source.cancel(
+          "Request canceled due to component unmount or effect re-trigger"
+        );
         socket.emit("leftRoom", {
           room: currentRoom,
           type: "inform",
@@ -134,6 +165,7 @@ const ChatRoom = () => {
         },
         (error) => {
           if (error) {
+            setDisplayToast(true);
             console.log("sent message fail");
           }
         }
@@ -188,6 +220,8 @@ const ChatRoom = () => {
       setErrorCreateMessage(err.response.data.message);
       setDisplayCreateRoomLoading(false);
       console.log("handleCreateRoomError", err);
+
+      err.response.data.message || setDisplayToast(true);
     }
   };
 
@@ -216,6 +250,9 @@ const ChatRoom = () => {
     } catch (err) {
       setErrorJoinMessage(err.response.data.message);
       setDisplayJoinRoomLoading(false);
+
+      err.response.data.message || setDisplayToast(true);
+
       console.log(err);
     }
   };
@@ -235,6 +272,27 @@ const ChatRoom = () => {
       );
       getAllRoom();
     } catch (err) {
+      setDisplayToast(true);
+      setDisplayChatLoading(false);
+    }
+  };
+
+  const handleDeleteRoom = async () => {
+    try {
+      setDisplayMenuChatRoom(false);
+      setDisplayChatLoading(true);
+      const deleteRoom = await axios.delete(
+        "http://localhost:4000/chatroom/delete",
+        {
+          headers: {
+            Authorization: `${cookies.token}`,
+          },
+          data: { roomId: currentRoom },
+        }
+      );
+      getAllRoom();
+    } catch (err) {
+      setDisplayToast(true);
       setDisplayChatLoading(false);
     }
   };
@@ -254,20 +312,6 @@ const ChatRoom = () => {
       reader.readAsDataURL(file);
     });
   }
-
-  const getChatHistory = async () => {
-    setAllMessage([]);
-    const chatHistory = await axios.get(
-      `http://localhost:4000/chatroom/${currentRoom}`,
-      {
-        headers: {
-          Authorization: `${cookies.token}`,
-        },
-      }
-    );
-    setDisplayChatLoading(false);
-    setAllMessage(chatHistory.data);
-  };
 
   const authCheck = async () => {
     try {
@@ -299,6 +343,7 @@ const ChatRoom = () => {
       }
     } catch (err) {
       setDisplaySidebarLoading(false);
+      setDisplayToast(true);
     }
   };
 
@@ -306,7 +351,7 @@ const ChatRoom = () => {
 
   const createRoom = () => {
     return (
-      <div className="w-[300px] h-[180px] p-[24px] bg-white rounded-lg absolute top-[50%] flex  flex-col left-[50%] translate-y-[-50%] translate-x-[-50%] shadow-2xl ">
+      <div className="z-[100] w-[300px] h-[180px] p-[24px] bg-white rounded-lg absolute top-[50%] flex  flex-col left-[50%] translate-y-[-50%] translate-x-[-50%] shadow-2xl ">
         <HiX
           onClick={() => setDisplayCreateRoom(false)}
           className="absolute top-[16px] right-[16px] cursor-pointer "
@@ -354,7 +399,7 @@ const ChatRoom = () => {
   const joinRoom = () => {
     return (
       <>
-        <div className="w-[300px] h-[130px] p-[24px] bg-white rounded-lg absolute top-[50%] flex  flex-col left-[50%] translate-y-[-50%] translate-x-[-50%] shadow-2xl ">
+        <div className="z-[100] w-[300px] h-[130px] p-[24px] bg-white rounded-lg absolute top-[50%] flex  flex-col left-[50%] translate-y-[-50%] translate-x-[-50%] shadow-2xl ">
           <HiX
             onClick={() => setDisplayJoinRoom(false)}
             className="absolute top-[16px] right-[16px] cursor-pointer "
@@ -389,8 +434,24 @@ const ChatRoom = () => {
     );
   };
 
+  const toast = () => {
+    return (
+      <>
+        <div className="w-[600px] flex px-[24px] items-center h-[50px] bg-white rounded-lg border-red-500 border text-red-500 absolute left-[50%] top-[50px] translate-x-[-50%] justify-between">
+          something went wrong please try again
+          <HiX
+            className="text-black cursor-pointer"
+            onClick={() => setDisplayToast(false)}
+          />
+        </div>
+      </>
+    );
+  };
+
   return (
     <>
+      {/* display toast when error */}
+      {displayToast && toast()}
       {displayCreateRoom && createRoom()}
       {displayJoinRoom && joinRoom()}
       <div className="flex  min-h-[720px]  ">
@@ -515,7 +576,10 @@ const ChatRoom = () => {
                     >
                       leave chat
                     </div>
-                    <div className="text-[16px] h-[32px] rounded-lg flex px-[16px] items-center hover:bg-blue-100 mt-[10px] cursor-pointer text-red-500">
+                    <div
+                      className="text-[16px] h-[32px] rounded-lg flex px-[16px] items-center hover:bg-blue-100 mt-[10px] cursor-pointer text-red-500"
+                      onClick={handleDeleteRoom}
+                    >
                       delete chat
                     </div>
                   </div>
