@@ -271,6 +271,7 @@ const ChatRoom = () => {
         },
         data: { roomId: currentRoom },
       });
+
       getAllRoom();
     } catch (err) {
       setDisplayToast(true);
@@ -326,6 +327,8 @@ const ChatRoom = () => {
 
   const getAllRoom = async () => {
     try {
+      setAllMessage([]);
+      setCurrentRoom("");
       setDisplaySidebarLoading(true);
       const getRoom = await axios.get(`${API_BASE_URL}/chatroom/`, {
         headers: {
