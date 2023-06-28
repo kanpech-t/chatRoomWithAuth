@@ -338,6 +338,8 @@ const ChatRoom = () => {
       setDisplaySidebarLoading(false);
       if (getRoom.data[0]) {
         setCurrentRoom(getRoom.data[0].roomId);
+      } else {
+        setDisplayChatLoading(false);
       }
     } catch (err) {
       setDisplaySidebarLoading(false);
@@ -454,7 +456,7 @@ const ChatRoom = () => {
       {displayJoinRoom && joinRoom()}
       <div className="flex  min-h-[720px]  ">
         {/* left block */}
-        <div className=" w-[350px]  h-[100vh] border-r pt-[24px] overflow-y-auto flex flex-col">
+        <div className=" w-[350px]  min-w-[350px] h-[100vh] border-r pt-[24px] overflow-y-auto flex flex-col">
           <div className="mt-[10px] flex gap-[20px] px-[24px]">
             <h1 className="text-[16px] font-semibold">Current user</h1>
             <span>{currentUser}</span>
@@ -554,134 +556,150 @@ const ChatRoom = () => {
             <AiOutlineLoading3Quarters className="animate-spin text-[80px]" />
           </div>
         ) : (
-          <div className=" h-[100vh] overflow-y-auto grow flex flex-col">
-            {/* header */}
-            <div className="border-b p-[24px] text-[24px] font-semibold flex justify-between items-center">
-              <h1>Room {currentRoom}</h1>
-              <div className="">
-                <AiOutlineMenu
-                  className="cursor-pointer active:opacity-50"
-                  onClick={() => {
-                    setDisplayMenuChatRoom(!displayMenuChatRoom);
-                  }}
-                />
-                {/* chatMenu */}
-                {displayMenuChatRoom && (
-                  <div className=" absolute right-[25px] top-[55px] w-[200px] h-[114px] bg-white drop-shadow-lg rounded-md py-[16px] px-[12px]">
-                    <div
-                      className="text-[16px] h-[32px] rounded-lg flex px-[16px] items-center hover:bg-blue-100 cursor-pointer"
-                      onClick={handleLeaveRoom}
-                    >
-                      leave chat
-                    </div>
-                    <div
-                      className="text-[16px] h-[32px] rounded-lg flex px-[16px] items-center hover:bg-blue-100 mt-[10px] cursor-pointer text-red-500"
-                      onClick={handleDeleteRoom}
-                    >
-                      delete chat
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            {/* chat */}
-            <div className="px-[24px] pb-[24px] flex flex-col grow">
-              <div className="grow pt-[10px]">
-                {allMessage.map((data, index) => {
-                  if (data.type === "inform") {
-                    return (
-                      <div className="flex justify-center">{data.content}</div>
-                    );
-                  }
-                  if (data.from !== currentUser) {
-                    return (
-                      <div
-                        key={index}
-                        className="min-h-[75px] bg-blue-100 mb-[10px] w-[150px] rounded-md p-[5px]"
-                      >
-                        <h1 className=" text-[16px] font-semibold">
-                          {data.from}
-                        </h1>
-                        {data.type === "image" ? (
-                          <img
-                            key={index}
-                            src={data.content}
-                            alt="Base64 Image"
-                          />
-                        ) : (
-                          <div className="break-words w-[140px]">
-                            {data.content}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  } else {
-                    return (
-                      <div className="flex justify-end">
+          <>
+            {currentRoom !== "" ? (
+              <div className=" h-[100vh] overflow-y-auto grow flex flex-col">
+                {/* header */}
+                <div className="border-b p-[24px] text-[24px] font-semibold flex justify-between items-center">
+                  <h1>Room {currentRoom}</h1>
+                  <div className="">
+                    <AiOutlineMenu
+                      className="cursor-pointer active:opacity-50"
+                      onClick={() => {
+                        setDisplayMenuChatRoom(!displayMenuChatRoom);
+                      }}
+                    />
+                    {/* chatMenu */}
+                    {displayMenuChatRoom && (
+                      <div className=" absolute right-[25px] top-[55px] w-[200px] h-[114px] bg-white drop-shadow-lg rounded-md py-[16px] px-[12px]">
                         <div
-                          key={index}
-                          className="min-h-[75px] bg-blue-200 mb-[10px] w-[150px] rounded-md p-[5px] "
+                          className="text-[16px] h-[32px] rounded-lg flex px-[16px] items-center hover:bg-blue-100 cursor-pointer"
+                          onClick={handleLeaveRoom}
                         >
-                          <h1 className=" text-[16px] font-semibold">
-                            {data.from}
-                          </h1>
-                          {data.type === "image" ? (
-                            <img
-                              key={index}
-                              src={data.content}
-                              alt="Base64 Image"
-                            />
-                          ) : (
-                            <div className="break-words w-[140px]">
-                              {data.content}
-                            </div>
-                          )}
+                          leave chat
+                        </div>
+                        <div
+                          className="text-[16px] h-[32px] rounded-lg flex px-[16px] items-center hover:bg-blue-100 mt-[10px] cursor-pointer text-red-500"
+                          onClick={handleDeleteRoom}
+                        >
+                          delete chat
                         </div>
                       </div>
-                    );
-                  }
-                })}
+                    )}
+                  </div>
+                </div>
+                {/* chat */}
+                <div className="px-[24px] pb-[24px] flex flex-col grow">
+                  <div className="grow pt-[10px]">
+                    {allMessage.map((data, index) => {
+                      if (data.type === "inform") {
+                        return (
+                          <div className="flex justify-center">
+                            {data.content}
+                          </div>
+                        );
+                      }
+                      if (data.from !== currentUser) {
+                        return (
+                          <div
+                            key={index}
+                            className="min-h-[75px] bg-blue-100 mb-[10px] w-[150px] rounded-md p-[5px]"
+                          >
+                            <h1 className=" text-[16px] font-semibold">
+                              {data.from}
+                            </h1>
+                            {data.type === "image" ? (
+                              <img
+                                key={index}
+                                src={data.content}
+                                alt="Base64 Image"
+                              />
+                            ) : (
+                              <div className="break-words w-[140px]">
+                                {data.content}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <div className="flex justify-end">
+                            <div
+                              key={index}
+                              className="min-h-[75px] bg-blue-200 mb-[10px] w-[150px] rounded-md p-[5px] "
+                            >
+                              <h1 className=" text-[16px] font-semibold">
+                                {data.from}
+                              </h1>
+                              {data.type === "image" ? (
+                                <img
+                                  key={index}
+                                  src={data.content}
+                                  alt="Base64 Image"
+                                />
+                              ) : (
+                                <div className="break-words w-[140px]">
+                                  {data.content}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      }
+                    })}
+                  </div>
+                  <form className="flex items-center border-t min-h-[50px] h-auto pt-[16px]">
+                    <input
+                      ref={messageInput}
+                      className="outline-none grow border-b mr-[20px]"
+                      placeholder="send a message"
+                    ></input>
+                    {selectedImage ? (
+                      <img
+                        src={selectedImage}
+                        className="w-[150px] mr-[15px]"
+                        alt="Base64 Image"
+                      />
+                    ) : (
+                      <label
+                        for="file-input"
+                        className="cursor-pointer mr-[15px]"
+                      >
+                        Choose File
+                      </label>
+                    )}
+
+                    <input
+                      id="file-input"
+                      type="file"
+                      className="hidden"
+                      name="myImage"
+                      onChange={async (event) => {
+                        const file = event.target.files[0];
+
+                        try {
+                          const base64Data = await fileToBase64(file);
+                          setSelectedImage(base64Data);
+                        } catch (error) {
+                          console.error(
+                            "Error converting file to base64:",
+                            error
+                          );
+                        }
+                      }}
+                    />
+                    <button onClick={(e) => handleSentMessage(e)}>
+                      <MdSend />
+                    </button>
+                  </form>
+                </div>
               </div>
-              <form className="flex items-center border-t min-h-[50px] h-auto pt-[16px]">
-                <input
-                  ref={messageInput}
-                  className="outline-none grow border-b mr-[20px]"
-                  placeholder="send a message"
-                ></input>
-                {selectedImage ? (
-                  <img
-                    src={selectedImage}
-                    className="w-[150px] mr-[15px]"
-                    alt="Base64 Image"
-                  />
-                ) : (
-                  <label for="file-input" className="cursor-pointer mr-[15px]">
-                    Choose File
-                  </label>
-                )}
-
-                <input
-                  id="file-input"
-                  type="file"
-                  className="hidden"
-                  name="myImage"
-                  onChange={async (event) => {
-                    const file = event.target.files[0];
-
-                    try {
-                      const base64Data = await fileToBase64(file);
-                      setSelectedImage(base64Data);
-                    } catch (error) {
-                      console.error("Error converting file to base64:", error);
-                    }
-                  }}
-                />
-                <button onClick={(e) => handleSentMessage(e)}>
-                  <MdSend />
-                </button>
-              </form>
-            </div>
-          </div>
+            ) : (
+              <div className="flex justify-center items-center h-[100vh] text-[24px] font-semibold w-[100%]">
+                No room
+              </div>
+            )}
+          </>
         )}
       </div>
     </>
