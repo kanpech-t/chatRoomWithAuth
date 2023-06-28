@@ -37,14 +37,23 @@ const ChatRoom = () => {
 
   const [allMessage, setAllMessage] = useState([]);
 
+  // display stage
+
   const [displayMenu, setDisplayMenu] = useState(false);
+  const [displayMenuChatRoom, setDisplayMenuChatRoom] = useState(false);
+
   const [displayCreateRoom, setDisplayCreateRoom] = useState(false);
   const [displayCreateRoomLoading, setDisplayCreateRoomLoading] =
     useState(false);
+
   const [displaySidebarLoading, setDisplaySidebarLoading] = useState(false);
+
   const [displayJoinRoom, setDisplayJoinRoom] = useState(false);
   const [displayJoinRoomLoading, setDisplayJoinRoomLoading] = useState(false);
-  const [displayChatLoding, setDisplatChatLoading] = useState(false);
+
+  const [displayChatLoading, setDisplayChatLoading] = useState(false);
+
+  // ========================
 
   const [roomIdInput, setRoomIdInput] = useState("");
   const [roomNameInput, setRoomNameInput] = useState("");
@@ -64,7 +73,7 @@ const ChatRoom = () => {
   //   handle when room change
 
   useEffect(() => {
-    setDisplatChatLoading(true);
+    setDisplayChatLoading(true);
     if (currentRoom !== "") {
       const socket = io("http://localhost:4000", {
         query: `auth_token=${cookies.token}`,
@@ -115,23 +124,39 @@ const ChatRoom = () => {
   const handleSentMessage = (e) => {
     e.preventDefault();
     if (selectedImage) {
-      currentSocket.emit("messageControl", {
-        type: "image",
-        room: currentRoom,
-        user: currentUser,
-        message: selectedImage,
-      });
+      currentSocket.emit(
+        "messageControl",
+        {
+          type: "image",
+          room: currentRoom,
+          user: currentUser,
+          message: selectedImage,
+        },
+        (error) => {
+          if (error) {
+            console.log("sent message fail");
+          }
+        }
+      );
       messageInput.current.value = "";
       setSelectedImage(null);
     } else {
       const messageValue = messageInput.current.value;
       messageInput.current.value = "";
-      currentSocket.emit("messageControl", {
-        type: "chat",
-        user: currentUser,
-        room: currentRoom,
-        message: messageValue,
-      });
+      currentSocket.emit(
+        "messageControl",
+        {
+          type: "chat",
+          user: currentUser,
+          room: currentRoom,
+          message: messageValue,
+        },
+        (error) => {
+          if (error) {
+            console.log("sent message fail");
+          }
+        }
+      );
     }
   };
 
@@ -195,6 +220,25 @@ const ChatRoom = () => {
     }
   };
 
+  const handleLeaveRoom = async () => {
+    try {
+      setDisplayMenuChatRoom(false);
+      setDisplayChatLoading(true);
+      const leaveRoom = await axios.delete(
+        "http://localhost:4000/chatroom/leave",
+        {
+          headers: {
+            Authorization: `${cookies.token}`,
+          },
+          data: { roomId: currentRoom },
+        }
+      );
+      getAllRoom();
+    } catch (err) {
+      setDisplayChatLoading(false);
+    }
+  };
+
   function fileToBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -221,7 +265,7 @@ const ChatRoom = () => {
         },
       }
     );
-    setDisplatChatLoading(false);
+    setDisplayChatLoading(false);
     setAllMessage(chatHistory.data);
   };
 
@@ -351,25 +395,15 @@ const ChatRoom = () => {
       {displayJoinRoom && joinRoom()}
       <div className="flex  min-h-[720px]  ">
         {/* left block */}
-        <div className=" w-[350px]  h-[100vh] border-r py-[24px] overflow-y-auto">
-          {" "}
-          <button
-            className="cursor-pointer flex items-center text-[16px] px-[24px] font-semibold"
-            onClick={() => {
-              removeCookie("token", { path: "/", domain: "localhost" });
-              navigate(-1);
-            }}
-          >
-            <BiArrowBack className="mr-[3px]" /> Logout
-          </button>
+        <div className=" w-[350px]  h-[100vh] border-r pt-[24px] overflow-y-auto flex flex-col">
           <div className="mt-[10px] flex gap-[20px] px-[24px]">
             <h1 className="text-[16px] font-semibold">Current user</h1>
             <span>{currentUser}</span>
           </div>
-          <div className="border-t mt-[15px] flex flex-col ">
+          <div className="border-t mt-[15px] flex flex-col grow">
             {/* search input */}
             <div className="flex items-center px-[24px]">
-              <form>
+              <form className="border-b">
                 <input
                   ref={searchInput}
                   placeholder="search by roomId"
@@ -385,11 +419,11 @@ const ChatRoom = () => {
             </div>
             {/* room */}
             {displaySidebarLoading ? (
-              <div className="flex justify-center relative h-[400px] ">
+              <div className="flex justify-center relative h-[400px] grow ">
                 <AiOutlineLoading3Quarters className="relative top-[200px] text-[60px] animate-spin" />
               </div>
             ) : (
-              <div className="mt-[15px] border-t ">
+              <div className="mt-[15px] border-t h-[100%]">
                 {filterRoom.length === 0 && (
                   <div className="flex justify-center text-[16px] font-semibold mt-[50px]">
                     No data
@@ -411,60 +445,84 @@ const ChatRoom = () => {
               </div>
             )}
           </div>
-          <div>
+          <div className="h-[90px]">
             {/* menudetail */}
-            {displayMenu ? (
-              <div className="absolute bottom-[24px] py-[24px] w-[150px] left-[24px] rounded-lg shadow-2xl h-[200px] bg-white">
-                <HiX
-                  className="absolute right-[10px] top-[8px] cursor-pointer"
-                  onClick={() => setDisplayMenu(!displayMenu)}
-                />
+            {displayMenu && (
+              <div className="absolute bottom-[60px] py-[16px] w-[200px] left-[24px] rounded-lg shadow-2xl h-[160px] bg-white px-[12px]">
                 <div
-                  className="p-[16px] text-[16px] hover:bg-blue-100 cursor-pointer font-semibold "
+                  className="flex items-center px-[16px] mt-[6px] h-[32px] rounded-lg text-[16px] hover:bg-blue-100 cursor-pointer font-semibold "
                   onClick={() => {
                     setDisplayMenu(false);
                     setDisplayCreateRoom(true);
                     setDisplayJoinRoom(false);
                   }}
                 >
-                  create room
+                  Create room
                 </div>
                 <div
-                  className="p-[16px] text-[16px] hover:bg-blue-100 cursor-pointer font-semibold "
+                  className="flex items-center px-[16px] text-[16px] h-[32px] rounded-lg mt-[10px]  hover:bg-blue-100 cursor-pointer font-semibold "
                   onClick={() => {
                     setDisplayMenu(false);
                     setDisplayCreateRoom(false);
                     setDisplayJoinRoom(true);
                   }}
                 >
-                  join room
+                  Join room
+                </div>
+                <div
+                  className="cursor-pointer flex h-[32px] rounded-lg hover:bg-blue-100 mt-[10px] items-center text-[16px] px-[16px] font-semibold text-red-500"
+                  onClick={() => {
+                    removeCookie("token", { path: "/", domain: "localhost" });
+                    navigate("/login");
+                  }}
+                >
+                  Logout
                 </div>
               </div>
-            ) : (
-              // menu icon
-              <div
-                className="flex justify-center items-center absolute bottom-[24px]   shadow-2xl w-[75px] h-[75px] rounded-full active:opacity-50 cursor-pointer left-[24px] bg-white"
-                onClick={() => setDisplayMenu(!displayMenu)}
-              >
-                <AiOutlineMenu className="text-[30px]" />
-              </div>
             )}
+            {/* // menu icon */}
+            <div
+              className="flex border-t items-center px-[24px]   h-[75px]  cursor-pointer left-[24px] bg-white"
+              onClick={() => setDisplayMenu(!displayMenu)}
+            >
+              <AiOutlineMenu className="text-[30px]" />
+            </div>
           </div>
         </div>
         {/* chat room  */}
-        {displayChatLoding ? (
+        {displayChatLoading ? (
           <div className=" grow flex justify-center items-center">
             <AiOutlineLoading3Quarters className="animate-spin text-[80px]" />
           </div>
         ) : (
           <div className=" h-[100vh] overflow-y-auto grow flex flex-col">
+            {/* header */}
             <div className="border-b p-[24px] text-[24px] font-semibold flex justify-between items-center">
               <h1>Room {currentRoom}</h1>
               <div className="">
-                {/* <AiOutlineMenu className="cursor-pointer active:opacity-50" /> */}
-                {/* <div className=" absolute right-[100px] top-[100px] w-[200px] h-[200px] bg-black"></div> */}
+                <AiOutlineMenu
+                  className="cursor-pointer active:opacity-50"
+                  onClick={() => {
+                    setDisplayMenuChatRoom(!displayMenuChatRoom);
+                  }}
+                />
+                {/* chatMenu */}
+                {displayMenuChatRoom && (
+                  <div className=" absolute right-[25px] top-[55px] w-[200px] h-[114px] bg-white drop-shadow-lg rounded-md py-[16px] px-[12px]">
+                    <div
+                      className="text-[16px] h-[32px] rounded-lg flex px-[16px] items-center hover:bg-blue-100 cursor-pointer"
+                      onClick={handleLeaveRoom}
+                    >
+                      leave chat
+                    </div>
+                    <div className="text-[16px] h-[32px] rounded-lg flex px-[16px] items-center hover:bg-blue-100 mt-[10px] cursor-pointer text-red-500">
+                      delete chat
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
+            {/* chat */}
             <div className="p-[24px] flex flex-col grow">
               <div className="grow ">
                 {allMessage.map((data, index) => {
@@ -522,7 +580,7 @@ const ChatRoom = () => {
                   }
                 })}
               </div>
-              <form className="flex items-center ">
+              <form className="flex items-center border-t min-h-[50px] h-auto pt-[16px]">
                 <input
                   ref={messageInput}
                   className="outline-none grow border-b mr-[20px]"

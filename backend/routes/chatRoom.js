@@ -91,7 +91,7 @@ router.post("/join", async (req, res) => {
   if (roomDuplicate) {
     return res.status(500).json({ message: "already join the room" });
   }
-  const allRoom = await userRoom.find();
+  const allRoom = await Room.find();
   allRoom.map((data) => {
     if (data.roomId === roomId) {
       roomExist = true;
@@ -147,6 +147,13 @@ router.delete("/leave", async (req, res) => {
       return res.status(500).json({ message: "you didn't join that room" });
     }
   } catch (err) {}
+});
+
+router.delete("/delete", async (req, res) => {
+  try {
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 module.exports = router;
