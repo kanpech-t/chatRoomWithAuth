@@ -35,7 +35,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "http://192.168.3.68:3000"],
   },
   // default is 1 MB
   maxHttpBufferSize: 4e6,
@@ -61,7 +61,12 @@ mongoose
 
 // ======================= Middleware =======================
 
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://192.168.3.68:3000"],
+    credentials: true,
+  })
+);
 
 app.use((req, res, next) => {
   if (req.path === "/login" || req.path === "/register/") {

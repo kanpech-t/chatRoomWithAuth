@@ -8,6 +8,12 @@ import Cookies from "js-cookie";
 const Login = () => {
   const navigate = useNavigate();
 
+  // ====================== const ======================
+
+  // const API_BASE_URL = "http://localhost:4000";
+
+  const API_BASE_URL = "http://192.168.3.68:4000";
+
   // ====================== useRef ======================
 
   const username = useRef();
@@ -24,6 +30,8 @@ const Login = () => {
 
   const [errorMessage, setErrorMessage] = useState("");
 
+  // ====================== function  ======================
+
   const handleLogin = async (e) => {
     try {
       e.preventDefault();
@@ -32,7 +40,7 @@ const Login = () => {
         setErrorMessage("please enter all fields");
       } else {
         const post = await axios.post(
-          "http://localhost:4000/login",
+          `${API_BASE_URL}/login`,
           {
             username: username.current.value,
             password: password.current.value,
@@ -65,7 +73,7 @@ const Login = () => {
       } else if (
         registerPassword.current.value === registerConfirmPassword.current.value
       ) {
-        const post = await axios.post("http://localhost:4000/register/", {
+        const post = await axios.post(`${API_BASE_URL}/register/`, {
           username: registerUsername.current.value,
           password: registerPassword.current.value,
         });

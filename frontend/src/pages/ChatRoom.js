@@ -24,6 +24,9 @@ const ChatRoom = () => {
 
   // ====================== const ======================
 
+  // const API_BASE_URL = "http://localhost:4000";
+  const API_BASE_URL = "http://192.168.3.68:4000";
+
   // ====================== Stage ======================
 
   const [selectedImage, setSelectedImage] = useState(null);
@@ -80,9 +83,10 @@ const ChatRoom = () => {
 
     const getChatHistory = async () => {
       try {
+        setSelectedImage(null);
         setAllMessage([]);
         const chatHistory = await axios.get(
-          `http://localhost:4000/chatroom/${currentRoom}`,
+          `${API_BASE_URL}/chatroom/${currentRoom}`,
           {
             cancelToken: source.token,
             headers: {
@@ -103,7 +107,7 @@ const ChatRoom = () => {
     };
 
     if (currentRoom !== "") {
-      const socket = io("http://localhost:4000", {
+      const socket = io(API_BASE_URL, {
         query: `auth_token=${cookies.token}`,
       });
 
@@ -129,12 +133,7 @@ const ChatRoom = () => {
         source.cancel(
           "Request canceled due to component unmount or effect re-trigger"
         );
-        socket.emit("leftRoom", {
-          room: currentRoom,
-          type: "inform",
-          message: `${username} has left the chat`,
-          from: username,
-        });
+
         socket.disconnect();
       };
     }
@@ -173,22 +172,27 @@ const ChatRoom = () => {
       messageInput.current.value = "";
       setSelectedImage(null);
     } else {
-      const messageValue = messageInput.current.value;
-      messageInput.current.value = "";
-      currentSocket.emit(
-        "messageControl",
-        {
-          type: "chat",
-          user: currentUser,
-          room: currentRoom,
-          message: messageValue,
-        },
-        (error) => {
-          if (error) {
-            console.log("sent message fail");
+      if (messageInput.current.value.length > 1000) {
+        setDisplayToast(true);
+        messageInput.current.value = "";
+      } else {
+        const messageValue = messageInput.current.value;
+        messageInput.current.value = "";
+        currentSocket.emit(
+          "messageControl",
+          {
+            type: "chat",
+            user: currentUser,
+            room: currentRoom,
+            message: messageValue,
+          },
+          (error) => {
+            if (error) {
+              console.log("sent message fail");
+            }
           }
-        }
-      );
+        );
+      }
     }
   };
 
@@ -201,7 +205,7 @@ const ChatRoom = () => {
         setDisplayCreateRoomLoading(false);
       } else {
         const createRoom = await axios.post(
-          "http://localhost:4000/chatroom/create",
+          `${API_BASE_URL}/chatroom/create`,
           { roomId: roomIdInput, roomName: roomNameInput },
           {
             headers: {
@@ -233,7 +237,7 @@ const ChatRoom = () => {
         setErrorJoinMessage("please enter all information");
       } else {
         const joinRoom = await axios.post(
-          "http://localhost:4000/chatroom/join",
+          `${API_BASE_URL}/chatroom/join`,
           { roomId: roomIdJoinInput },
           {
             headers: {
@@ -261,15 +265,12 @@ const ChatRoom = () => {
     try {
       setDisplayMenuChatRoom(false);
       setDisplayChatLoading(true);
-      const leaveRoom = await axios.delete(
-        "http://localhost:4000/chatroom/leave",
-        {
-          headers: {
-            Authorization: `${cookies.token}`,
-          },
-          data: { roomId: currentRoom },
-        }
-      );
+      const leaveRoom = await axios.delete(`${API_BASE_URL}/chatroom/leave`, {
+        headers: {
+          Authorization: `${cookies.token}`,
+        },
+        data: { roomId: currentRoom },
+      });
       getAllRoom();
     } catch (err) {
       setDisplayToast(true);
@@ -281,15 +282,12 @@ const ChatRoom = () => {
     try {
       setDisplayMenuChatRoom(false);
       setDisplayChatLoading(true);
-      const deleteRoom = await axios.delete(
-        "http://localhost:4000/chatroom/delete",
-        {
-          headers: {
-            Authorization: `${cookies.token}`,
-          },
-          data: { roomId: currentRoom },
-        }
-      );
+      const deleteRoom = await axios.delete(`${API_BASE_URL}/chatroom/delete`, {
+        headers: {
+          Authorization: `${cookies.token}`,
+        },
+        data: { roomId: currentRoom },
+      });
       getAllRoom();
     } catch (err) {
       setDisplayToast(true);
@@ -315,7 +313,7 @@ const ChatRoom = () => {
 
   const authCheck = async () => {
     try {
-      const chatHistory = await axios.get(`http://localhost:4000/auth`, {
+      const chatHistory = await axios.get(`${API_BASE_URL}/auth`, {
         headers: {
           Authorization: `${cookies.token}`,
         },
@@ -329,7 +327,7 @@ const ChatRoom = () => {
   const getAllRoom = async () => {
     try {
       setDisplaySidebarLoading(true);
-      const getRoom = await axios.get(`http://localhost:4000/chatroom/`, {
+      const getRoom = await axios.get(`${API_BASE_URL}/chatroom/`, {
         headers: {
           Authorization: `${cookies.token}`,
         },
@@ -509,7 +507,7 @@ const ChatRoom = () => {
           <div className="h-[90px]">
             {/* menudetail */}
             {displayMenu && (
-              <div className="absolute bottom-[60px] py-[16px] w-[200px] left-[24px] rounded-lg shadow-2xl h-[160px] bg-white px-[12px]">
+              <div className="absolute bottom-[75px] py-[16px] w-[200px] left-[24px] rounded-lg shadow-2xl h-[160px] bg-white px-[12px]">
                 <div
                   className="flex items-center px-[16px] mt-[6px] h-[32px] rounded-lg text-[16px] hover:bg-blue-100 cursor-pointer font-semibold "
                   onClick={() => {
@@ -587,8 +585,8 @@ const ChatRoom = () => {
               </div>
             </div>
             {/* chat */}
-            <div className="p-[24px] flex flex-col grow">
-              <div className="grow ">
+            <div className="px-[24px] pb-[24px] flex flex-col grow">
+              <div className="grow pt-[10px]">
                 {allMessage.map((data, index) => {
                   if (data.type === "inform") {
                     return (
