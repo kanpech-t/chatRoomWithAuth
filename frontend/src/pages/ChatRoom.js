@@ -24,8 +24,9 @@ const ChatRoom = () => {
 
   // ====================== const ======================
 
-  // const API_BASE_URL = "http://localhost:4000";
-  const API_BASE_URL = "http://192.168.3.68:4000";
+  const API_BASE_URL = "http://localhost:4000";
+
+  // const API_BASE_URL = "http://192.168.3.68:4000";
 
   // ====================== Stage ======================
 
@@ -679,15 +680,19 @@ const ChatRoom = () => {
                       name="myImage"
                       onChange={async (event) => {
                         const file = event.target.files[0];
-
-                        try {
-                          const base64Data = await fileToBase64(file);
-                          setSelectedImage(base64Data);
-                        } catch (error) {
-                          console.error(
-                            "Error converting file to base64:",
-                            error
-                          );
+                        // max file size 4Mb depend on Max socket buffer
+                        if (event.target.files[0].size > 4 * 1024 * 1024) {
+                          setDisplayToast(true);
+                        } else {
+                          try {
+                            const base64Data = await fileToBase64(file);
+                            setSelectedImage(base64Data);
+                          } catch (error) {
+                            console.error(
+                              "Error converting file to base64:",
+                              error
+                            );
+                          }
                         }
                       }}
                     />
