@@ -28,7 +28,7 @@ const ChatRoom = () => {
 
   // const API_BASE_URL = "http://192.168.3.68:4000";
 
-  // ====================== Stage ======================
+  // ====================== stage ======================
 
   const [selectedImage, setSelectedImage] = useState(null);
 
@@ -140,7 +140,7 @@ const ChatRoom = () => {
     }
   }, [currentRoom]);
 
-  // ====================== Function ======================
+  // ====================== function ======================
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -351,7 +351,7 @@ const ChatRoom = () => {
     }
   };
 
-  // ====================== SupComponent ======================
+  // ====================== supComponent ======================
 
   const createRoom = () => {
     return (

@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
+import { HiX } from "react-icons/hi";
 
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -23,10 +24,11 @@ const Login = () => {
   const registerPassword = useRef();
   const registerConfirmPassword = useRef();
 
-  // ====================== useState ======================
+  // ====================== state ======================
 
   const [displayRegister, setDisplayRegister] = useState(false);
   const [displayPassword, setDisplayPassword] = useState(false);
+  const [displayToast, setDisplayToast] = useState(false);
 
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -57,6 +59,8 @@ const Login = () => {
     } catch (error) {
       if (error.response && error.response.status === 401) {
         setErrorMessage(error.response.data.error);
+      } else {
+        setDisplayToast(true);
       }
     }
   };
@@ -88,54 +92,75 @@ const Login = () => {
     } catch (error) {
       if (error.response && error.response.status === 401) {
         setErrorMessage(error.response.data.error);
+      } else {
+        setDisplayToast(true);
       }
     }
   };
 
+  // ====================== supComponent  ======================
+
+  const toast = () => {
+    return (
+      <>
+        <div className="w-[600px] flex px-[24px] items-center h-[50px] bg-white rounded-lg border-red-500 border text-red-500 absolute left-[50%] top-[50px] translate-x-[-50%] justify-between">
+          something went wrong please try again
+          <HiX
+            className="text-black cursor-pointer"
+            onClick={() => setDisplayToast(false)}
+          />
+        </div>
+      </>
+    );
+  };
+
   return (
     <>
+      {displayToast && toast()}
       <div className="flex flex-col gap-[20px] justify-center items-center w-[100%] h-[100vh]">
         {!displayRegister ? (
           // login
           <div className="relative w-[600px] p-[24px] gap-[10px] h-[330px] shadow-xl rounded-lg flex flex-col">
             <div className="text-[24px] font-bold">Login</div>
-            <input
-              onChange={() => setErrorMessage("")}
-              ref={username}
-              placeholder="username"
-              className="border-b   px-[10px] py-[3px] outline-none"
-            ></input>
-            <div className="relative  h-[80px]">
+            <form>
               <input
                 onChange={() => setErrorMessage("")}
-                type={displayPassword ? "" : "password"}
-                ref={password}
-                placeholder="password"
-                className=" border-b  px-[10px] py-[3px] outline-none w-[100%]"
+                ref={username}
+                placeholder="username"
+                className="border-b   px-[10px] py-[3px] outline-none"
               ></input>
+              <div className="relative  h-[80px]">
+                <input
+                  onChange={() => setErrorMessage("")}
+                  type={displayPassword ? "" : "password"}
+                  ref={password}
+                  placeholder="password"
+                  className=" border-b  px-[10px] py-[3px] outline-none w-[100%]"
+                ></input>
 
-              {displayPassword ? (
-                <AiFillEye
-                  className="absolute right-[15px] top-[8px] cursor-pointer"
-                  onClick={() => setDisplayPassword(!displayPassword)}
-                />
-              ) : (
-                <AiFillEyeInvisible
-                  className="absolute right-[15px] top-[8px] cursor-pointer"
-                  onClick={() => setDisplayPassword(!displayPassword)}
-                />
-              )}
-              <span className="text-red-500">
-                {" "}
-                {errorMessage !== "" && errorMessage}
-              </span>
-            </div>
-            <button
-              className="text-[24px] mt-[35px] w-[100%] font-semibold  "
-              onClick={(e) => handleLogin(e)}
-            >
-              Login
-            </button>
+                {displayPassword ? (
+                  <AiFillEye
+                    className="absolute right-[15px] top-[8px] cursor-pointer"
+                    onClick={() => setDisplayPassword(!displayPassword)}
+                  />
+                ) : (
+                  <AiFillEyeInvisible
+                    className="absolute right-[15px] top-[8px] cursor-pointer"
+                    onClick={() => setDisplayPassword(!displayPassword)}
+                  />
+                )}
+                <span className="text-red-500">
+                  {" "}
+                  {errorMessage !== "" && errorMessage}
+                </span>
+              </div>
+              <button
+                className="text-[24px] mt-[35px] w-[100%] font-semibold  "
+                onClick={(e) => handleLogin(e)}
+              >
+                Login
+              </button>
+            </form>
             <span className="self-center">
               Not a member?
               <span
@@ -155,36 +180,38 @@ const Login = () => {
           // register
           <div className="w-[600px] p-[24px] gap-[10px] h-[330px] shadow-xl rounded-lg flex flex-col">
             <div className="text-[24px] font-bold"> Register</div>
-            <input
-              onChange={() => setErrorMessage("")}
-              ref={registerUsername}
-              placeholder="username"
-              className="border-b  px-[10px] py-[3px] outline-none w-[100%]"
-            ></input>
-            <input
-              onChange={() => setErrorMessage("")}
-              type="password"
-              ref={registerPassword}
-              placeholder="password"
-              className="border-b   px-[10px] py-[3px] outline-none w-[100%]"
-            ></input>
-            <input
-              onChange={() => setErrorMessage("")}
-              type="password"
-              ref={registerConfirmPassword}
-              placeholder="confirm password"
-              className="border-b   px-[10px] py-[3px] outline-none w-[100%]"
-            ></input>
-            <div className="h-[40px] text-red-500">
-              {" "}
-              {errorMessage !== "" && errorMessage}
-            </div>
-            <button
-              className="text-[24px] w-[100%] font-semibold"
-              onClick={(e) => handleRegister(e)}
-            >
-              Register
-            </button>
+            <form>
+              <input
+                onChange={() => setErrorMessage("")}
+                ref={registerUsername}
+                placeholder="username"
+                className="border-b  px-[10px] py-[3px] outline-none w-[100%]"
+              ></input>
+              <input
+                onChange={() => setErrorMessage("")}
+                type="password"
+                ref={registerPassword}
+                placeholder="password"
+                className="border-b   px-[10px] py-[3px] outline-none w-[100%]"
+              ></input>
+              <input
+                onChange={() => setErrorMessage("")}
+                type="password"
+                ref={registerConfirmPassword}
+                placeholder="confirm password"
+                className="border-b   px-[10px] py-[3px] outline-none w-[100%]"
+              ></input>
+              <div className="h-[40px] text-red-500">
+                {" "}
+                {errorMessage !== "" && errorMessage}
+              </div>
+              <button
+                className="text-[24px] w-[100%] font-semibold"
+                onClick={(e) => handleRegister(e)}
+              >
+                Register
+              </button>
+            </form>
             <span className="self-center">
               Already member ?
               <span
