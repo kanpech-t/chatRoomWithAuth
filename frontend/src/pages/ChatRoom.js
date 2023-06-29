@@ -115,7 +115,6 @@ const ChatRoom = () => {
       setCurrentSocket(socket);
       let username = "";
       socket.on("success", async (data) => {
-        console.log(data);
         setCurrentUser(data.username);
         username = data.username;
         await getChatHistory();
@@ -499,7 +498,7 @@ const ChatRoom = () => {
                     className={`px-[24px] border-b h-[80px] hover:bg-blue-100 cursor-pointer flex items-center font-semibold ${
                       currentRoom === data.roomId ? "bg-blue-100" : ""
                     }`}
-                    key={index}
+                    key={data.roomId}
                     onClick={() => {
                       setCurrentRoom(data.roomId);
                     }}

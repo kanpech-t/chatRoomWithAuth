@@ -11,23 +11,23 @@ const { Server } = require("socket.io");
 
 require("dotenv").config();
 
-// ======================= Router =======================
+// ======================= router =======================
 
 const login = require("./routes/login");
 const chatRoom = require("./routes/chatRoom");
 
-// ======================= Middleware =======================
+// ======================= middlewareImport =======================
 
 const auth = require("./middleware/auth.js");
 
-// ======================= Model =======================
+// ======================= model =======================
 
 const User = require("./models/User.js");
 const room = require("./models/Room.js");
 const userRoom = require("./models/UserRoom.js");
 const message = require("./models/Message.js");
 
-// ======================= Const =======================
+// ======================= const =======================
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const PORT = 4000;
@@ -59,7 +59,7 @@ mongoose
     console.log("Error connecting to MongoDB:", error);
   });
 
-// ======================= Middleware =======================
+// ======================= middleware =======================
 
 app.use(
   cors({
@@ -109,14 +109,8 @@ io.on("connection", (socket) => {
   socket.emit("success", socket.request.user);
 
   socket.on("joinRoom", (data) => {
-    console.log(data);
     socket.join(data.room);
-    console.log(`Socket joined room: ${data.room}`);
-    // io.to(data.room).emit("messageControl", {
-    //   type: "inform",
-    //   content: `${data.user} has joined the chat`,
-    //   from: data.user,
-    // });
+    console.log(`User joined room: ${data.room}`);
   });
 
   socket.on("leftRoom", (data) => {
@@ -151,7 +145,7 @@ io.on("connection", (socket) => {
 });
 
 module.exports = io;
-// ======================= Router =======================
+// ======================= router =======================
 
 app.use("/", login);
 app.use("/chatroom", chatRoom);

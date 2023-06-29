@@ -51,7 +51,6 @@ const Login = () => {
             withCredentials: true,
           }
         );
-        console.log(post.data);
         username.current.value = "";
         password.current.value = "";
         navigate("/chatroom");
@@ -127,7 +126,7 @@ const Login = () => {
                 onChange={() => setErrorMessage("")}
                 ref={username}
                 placeholder="username"
-                className="border-b   px-[10px] py-[3px] outline-none"
+                className="border-b w-[100%] px-[10px] py-[3px] outline-none"
               ></input>
               <div className="relative  h-[80px]">
                 <input
